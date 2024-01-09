@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Client</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var conn;
+
+            function init() {
+                conn = new WebSocket("ws://localhost:8080/ws");
+
+                conn.onopen = function(e) {
+                    console.log("Connection established!");
+                };
+
+                conn.onmessage = function(e) {
+                    var messages = document.getElementById('messages');
+                    messages.innerHTML += '<li>' + e.data + '</li>';
+                };
+
+                conn.onerror = function(e) {
+                    console.log("Connection failed!");
+                };
+            }
+
+            document.getElementById('messageForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var message = document.getElementById('messageText').value;
+                conn.send(message);
+                document.getElementById('messageText').value = '';
+            });
+
+            init();
+        });
+    </script>
+</head>
+<body>
+    <ul id="messages"></ul>
+    <form id="messageForm">
+        <input type="text" id="messageText" autocomplete="off" /><button>Send</button>
+    </form>
+</body>
+</html>
