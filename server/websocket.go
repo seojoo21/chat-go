@@ -7,12 +7,21 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var clients = make(map[*websocket.Conn]bool) // connected clients
+var broadcast = make(chan Message)           // broadcast channel
+
+type Message struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Message  string `json:"message"`
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-func HandelConnections(w http.ResponseWriter, r *http.Request) {
+/*func HandelConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -33,6 +42,46 @@ func HandelConnections(w http.ResponseWriter, r *http.Request) {
 		if err := ws.WriteMessage(messageType, message); err != nil {
 			log.Println("Error writing message :: ", err)
 			break
+		}
+	}
+}*/
+
+func HandelConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ws.Close()
+
+	// Register new client
+	clients[ws] = true
+
+	for {
+		var msg Message
+		// Read new message as JSON
+		err := ws.ReadJSON(&msg)
+		if err != nil {
+			log.Printf("readJson error : %v", err)
+			delete(clients, ws)
+			break
+		}
+		// Send the newly received message to the broadcast channel
+		broadcast <- msg
+	}
+}
+
+func HandleMessages() {
+	for {
+		// Grab the next message from the broadcast channel
+		msg := <-broadcast
+		// Send it out to every client that is currently connected
+		for client := range clients {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				log.Printf("writeJson err : %v", err)
+				client.Close()
+				delete(clients, client)
+			}
 		}
 	}
 }

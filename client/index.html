@@ -13,9 +13,15 @@
                     console.log("Connection established!");
                 };
 
-                conn.onmessage = function(e) {
+                /*conn.onmessage = function(e) {
                     var messages = document.getElementById('messages');
                     messages.innerHTML += '<li>' + e.data + '</li>';
+                };*/
+
+                conn.onmessage = function(e) {
+                    var messages = document.getElementById('messages');
+                    var message = JSON.parse(e.data);
+                    messages.innerHTML += '<li><strong>' + message.username + '</strong>: ' + message.message + '</li>';
                 };
 
                 conn.onerror = function(e) {
@@ -25,8 +31,12 @@
 
             document.getElementById('messageForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                var message = document.getElementById('messageText').value;
-                conn.send(message);
+                var message = {
+                    email: "example@example.com", // Static or dynamic email
+                    username: "User", // Static or dynamic username
+                    message: document.getElementById('messageText').value
+                };
+                conn.send(JSON.stringify(message));
                 document.getElementById('messageText').value = '';
             });
 
