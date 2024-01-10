@@ -15,8 +15,6 @@ func main() {
 
 	go server.HandleMessages()
 
-	//server.SendNotice("Welcome to the Chat Room!")
-
 	log.Println("Listening on http://localhost:8080...")
 
 	err := http.ListenAndServe(":8080", nil)
