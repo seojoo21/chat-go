@@ -11,6 +11,7 @@ var clients = make(map[*websocket.Conn]bool) // connected clients
 var broadcast = make(chan Message)           // broadcast channel
 
 type Message struct {
+	Type     string `json:"type"` // 'chat' for regular messages, 'notice' for notices
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Message  string `json:"message"`
@@ -53,6 +54,8 @@ func HandelConnections(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
+	SendNotice("Welcome to the Chat Room!")
+
 	// Register new client
 	clients[ws] = true
 
@@ -84,4 +87,14 @@ func HandleMessages() {
 			}
 		}
 	}
+}
+
+func SendNotice(noticeText string) {
+	notice := Message{
+		Type:     "notice",
+		Email:    "",
+		Username: "Admin",
+		Message:  noticeText,
+	}
+	broadcast <- notice
 }

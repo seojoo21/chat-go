@@ -31,7 +31,14 @@
                 conn.onmessage = function(e) {
                     var messages = document.getElementById('messages');
                     var message = JSON.parse(e.data);
-                    messages.innerHTML += '<li><strong>' + message.username + '</strong>: ' + message.message + '</li>';
+                    
+                    console.log("message :: ", message)
+
+                    if (message.type === "notice") {
+                        document.getElementById('notice').innerText = message.message;
+                    } else {
+                        messages.innerHTML += '<li><strong>' + message.username + '</strong>: ' + message.message + '</li>';
+                    }
                 };
 
                 conn.onerror = function(e) {
@@ -53,6 +60,13 @@
             init();
         });
     </script>
+    <style>
+        .notice {
+            background-color: yellow; /* or any styling you prefer */
+            text-align: center;
+            padding: 5px;
+        }
+    </style>
 </head>
 <body>
     <div id="login">
@@ -63,6 +77,7 @@
         </form>
     </div>
     <div id="chat">
+        <div id="notice" class="notice"></div>
         <ul id="messages"></ul>
         <form id="messageForm">
             <input type="text" id="messageText" placeholder="Enter message" autocomplete="off"/><button>Send</button>
