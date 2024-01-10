@@ -5,18 +5,28 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             var conn;
+            var userEmail = '';
+            var userName = '';
 
             function init() {
+                document.getElementById('chat').style.display = 'none';
+
+                document.getElementById('loginForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    userEmail = document.getElementById('email').value;
+                    userName = document.getElementById('username').value;
+                    document.getElementById('login').style.display = 'none';
+                    document.getElementById('chat').style.display = 'block';
+                    startWebSocket();
+                });
+            }
+
+            function startWebSocket() {
                 conn = new WebSocket("ws://localhost:8080/ws");
 
                 conn.onopen = function(e) {
                     console.log("Connection established!");
                 };
-
-                /*conn.onmessage = function(e) {
-                    var messages = document.getElementById('messages');
-                    messages.innerHTML += '<li>' + e.data + '</li>';
-                };*/
 
                 conn.onmessage = function(e) {
                     var messages = document.getElementById('messages');
@@ -27,27 +37,36 @@
                 conn.onerror = function(e) {
                     console.log("Connection failed!");
                 };
-            }
 
-            document.getElementById('messageForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                var message = {
-                    email: "example@example.com", // Static or dynamic email
-                    username: "User", // Static or dynamic username
-                    message: document.getElementById('messageText').value
-                };
-                conn.send(JSON.stringify(message));
-                document.getElementById('messageText').value = '';
-            });
+                document.getElementById('messageForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var message = {
+                        email: userEmail,
+                        username: userName,
+                        message: document.getElementById('messageText').value
+                    };
+                    conn.send(JSON.stringify(message));
+                    document.getElementById('messageText').value = '';
+                });
+            }
 
             init();
         });
     </script>
 </head>
 <body>
-    <ul id="messages"></ul>
-    <form id="messageForm">
-        <input type="text" id="messageText" autocomplete="off" /><button>Send</button>
-    </form>
+    <div id="login">
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required autocomplete="off"/><br/>
+            <input type="text" id="username" placeholder="Username" required autocomplete="off"/><br/>
+            <button type="submit">Join Chat</button>
+        </form>
+    </div>
+    <div id="chat">
+        <ul id="messages"></ul>
+        <form id="messageForm">
+            <input type="text" id="messageText" placeholder="Enter message" autocomplete="off"/><button>Send</button>
+        </form>
+    </div>
 </body>
 </html>
